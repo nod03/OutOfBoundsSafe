@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 using R2API.Networking.Interfaces;
 using R2API.Networking;
 using RoR2.Networking;
+using BepInEx.Configuration;
 
 namespace OutOfBoundsSafe
 {
@@ -26,14 +27,17 @@ namespace OutOfBoundsSafe
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "bouncyshield";
         public const string PluginName = "OutOfBoundsSafe";
-        public const string PluginVersion = "1.0.2";
+        public const string PluginVersion = "1.0.3";
 
         public void Awake()
         {
             Log.Init(Logger);
 
+            Configs();
+
             On.RoR2.MapZone.TryZoneStart += HitBound;
             Stage.onStageStartGlobal += ClearBasket;
+            Stage.onStageStartGlobal += GetBound;
         }
 
         private List<Coroutine> Basket = new();
@@ -55,6 +59,8 @@ namespace OutOfBoundsSafe
         }
 
         private List<Collider> tethered = new();
+        private float yBound = float.MaxValue;
+        private bool imscared = false;
         IEnumerator Tether(On.RoR2.MapZone.orig_TryZoneStart orig, MapZone self, Collider other)
         {
             if (!tethered.Contains(other))
@@ -77,10 +83,17 @@ namespace OutOfBoundsSafe
                         breakReason = "died";
                         break;
                     }
-                    else if (other.transform.localPosition.y < -500)
+                    else if (other.transform.localPosition.y < yBound)
                     {
                         breakReason = "fell OOB";
                         orig(self, other);
+                        break;
+                    }
+                    else if (imscared)
+                    {
+                        breakReason = "EEK!";
+                        orig(self, other);
+                        imscared = false;
                         break;
                     }
                     yield return new WaitForSeconds(1);
@@ -95,6 +108,47 @@ namespace OutOfBoundsSafe
         private void ClearBasket(Stage x)
         {
             Basket.Clear();
+        }
+
+        private void GetBound(Stage stage)
+        {
+            float wauce = float.MaxValue;
+
+            var nodes = SceneInfo.instance?.groundNodes;
+            if (nodes != null)
+            {
+                foreach (var node in nodes.nodes)
+                {
+                    if (node.position.y < wauce)
+                    {
+                        wauce = node.position.y;
+                    }
+                }
+            }
+
+            if (wauce == float.MaxValue)
+            {
+                Log.Warning("Could not find a lower bound for the scene, OOB mechanics will not work");
+            }
+            else { Log.Info($"Lower bound at y = {wauce} - {buffer.Value}"); }
+
+            yBound = wauce - buffer.Value;
+        }
+
+        internal static ConfigEntry<KeyCode> breakKey;
+        internal static ConfigEntry<float> buffer;
+        private void Configs()
+        {
+            breakKey = Config.Bind("OOBSafe", "Panic Button", KeyCode.B, "Key to instantly return to in bounds!");
+            buffer = Config.Bind("OOBSafe", "Fall Buffer", 400f, "How far you can fall out of the map (in y coords) before you are returned in bounds.");
+        }
+
+        public void Update()
+        {
+            if (Input.GetKeyDown(breakKey.Value) && tethered.Count > 0)
+            {
+                imscared = true;
+            }
         }
     }
 }
