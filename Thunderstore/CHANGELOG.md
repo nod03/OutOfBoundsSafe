@@ -1,3 +1,12 @@
+## 1.0.4
+
+* Null checking for isPlayerControlled
+* Added some cool screenshots for the README
+* Changed default fall buffer to 600
+* Removed LanguageAPI dependency (???)
+
+
+
 ## 1.0.3
 
 * Added a panic button (by default B)

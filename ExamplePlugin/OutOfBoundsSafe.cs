@@ -1,22 +1,8 @@
 using BepInEx;
-using R2API;
 using RoR2;
-using RoR2.Stats;
-using System.IO;
-using System;
-using System.Text;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using IL.RoR2.UI;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Networking;
-using R2API.Networking.Interfaces;
-using R2API.Networking;
-using RoR2.Networking;
 using BepInEx.Configuration;
 
 namespace OutOfBoundsSafe
@@ -27,7 +13,7 @@ namespace OutOfBoundsSafe
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "bouncyshield";
         public const string PluginName = "OutOfBoundsSafe";
-        public const string PluginVersion = "1.0.3";
+        public const string PluginVersion = "1.0.4";
 
         public void Awake()
         {
@@ -45,12 +31,17 @@ namespace OutOfBoundsSafe
         {
             string n = self.gameObject.name.ToLower();
 
-            bool a = !(n.Contains("orb") | n.Contains("altar") | n.Contains("map") | n.Contains("kickout"));
-            bool b = other.GetComponent<CharacterBody>().isPlayerControlled;
+            bool a = !(n.Contains("orb") | n.Contains("altar") | (n.Contains("map") && !n.Contains("holder")) | n.Contains("kickout"));
+            bool b = other.GetComponent<CharacterBody>()?.isPlayerControlled ?? false;
 
             if (a & b)
             {
                 Basket.Add(StartCoroutine(Tether(orig, self, other)));
+            }
+            else if (!a & b)
+            {
+                Log.Debug($"Allowed {self.gameObject.name} to warp {other.name}");
+                orig(self, other);
             }
             else
             {
@@ -130,7 +121,7 @@ namespace OutOfBoundsSafe
             {
                 Log.Warning("Could not find a lower bound for the scene, OOB mechanics will not work");
             }
-            else { Log.Info($"Lower bound at y = {wauce} - {buffer.Value}"); }
+            else { Log.Debug($"Lower bound at y = {wauce} (- {buffer.Value})"); }
 
             yBound = wauce - buffer.Value;
         }
@@ -140,7 +131,7 @@ namespace OutOfBoundsSafe
         private void Configs()
         {
             breakKey = Config.Bind("OOBSafe", "Panic Button", KeyCode.B, "Key to instantly return to in bounds!");
-            buffer = Config.Bind("OOBSafe", "Fall Buffer", 400f, "How far you can fall out of the map (in y coords) before you are returned in bounds.");
+            buffer = Config.Bind("OOBSafe", "Fall Buffer", 600f, "How far you can fall out of the map (in y coords) before you are returned in bounds.");
         }
 
         public void Update()
