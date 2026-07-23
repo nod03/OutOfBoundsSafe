@@ -12,5 +12,6 @@ Whenever you hit a stage limit, this mod "tethers" you to it so that you won't b
 
 <img width="640" height="360" alt="image" src="https://github.com/user-attachments/assets/4bf3be41-f1ec-48b0-a923-af7bd91f2063" />
 
+Risk of Rain 2 uses "MapZones" for both map boundary warps AND intended warps (such as Mithrix portals), so they have to be distinguished manually. If you find any intended warps that no longer work, or any out of bounds areas that this mod won't let you reach, feel free to let me know:
 
 Discord: bouncyshield

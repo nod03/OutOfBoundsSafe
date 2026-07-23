@@ -1,6 +1,6 @@
 ﻿{
 	"name": "OutOfBoundsSafe",
-	"version_number": "1.0.4",
+	"version_number": "1.1.0",
 	"website_url": "https://github.com/nod03/OutOfBoundsSafe",
 	"description": "Allows you to exit the map bounds freely, but teleports you back if you fall through the floor.",
 	"dependencies": [

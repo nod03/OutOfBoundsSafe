@@ -1,3 +1,11 @@
+## 1.1.0
+
+* Added tooltip for the first boundary break per run, can be disabled in config
+* MapZone whitelist thoroughly updated
+* Certain stage 1 spawns no longer instantly tether you
+
+
+
 ## 1.0.4
 
 * Null checking for isPlayerControlled
